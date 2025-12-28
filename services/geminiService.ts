@@ -1,10 +1,30 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Party } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+/**
+ * We declare process as a global variable so TypeScript doesn't complain.
+ * Vite's 'define' config will replace 'process.env.API_KEY' with the actual value.
+ */
+declare global {
+  interface Window {
+    process: {
+      env: {
+        API_KEY?: string;
+      };
+    };
+  }
+}
+const processEnv = (typeof process !== 'undefined' ? process : { env: { API_KEY: '' } });
 
 export const getBusinessSummary = async (parties: Party[]) => {
+  const apiKey = processEnv.env.API_KEY;
+  
+  if (!apiKey) {
+    return "API Key missing. Please set API_KEY in your environment variables and redeploy.";
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+
   const dataString = parties.map(p => ({
     name: p.name,
     balance: p.transactions.reduce((acc, t) => acc + (t.type === 'DEBIT' ? t.amount : -t.amount), 0),
@@ -24,19 +44,14 @@ export const getBusinessSummary = async (parties: Party[]) => {
   `;
 
   try {
-    // Correct usage of generateContent for Gemini 3 Flash model
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        temperature: 0.7,
-        // Removed maxOutputTokens to avoid truncation issues as per developer guidelines
-      }
+      contents: [{ parts: [{ text: prompt }] }],
     });
-    // Accessing .text property directly as per Gemini API guidelines
+    
     return response.text;
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Could not generate summary at this time.";
+    return "Abhi summary generate nahi ho pa rahi hai. Kripya baad mein prayas karein.";
   }
 };
