@@ -1,0 +1,7 @@
+{
+  "name": "OSHO CREDIT",
+  "description": "A high-fidelity mobile-first ledger application for Indian shopkeepers and wholesalers to manage Udhar, credit, and transactions with AI-powered business summaries.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
